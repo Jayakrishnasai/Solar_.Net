@@ -64,7 +64,7 @@ jobs:
         kubectl create secret docker-registry acr-secret \
           --docker-server=${{ env.ACR_LOGIN_SERVER }} \
           --docker-username=${{ secrets.ACR_USERNAME }} \
-          --docker-password=${{ secrets.ACR_PASSWORD }}
+          --docker-password="${{ secrets.ACR_PASSWORD }}"
 
     - name: Create/Update App Secrets
       run: |
