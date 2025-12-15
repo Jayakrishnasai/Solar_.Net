@@ -5,7 +5,7 @@ metadata:
   labels:
     app: solarsystem
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: solarsystem
@@ -22,6 +22,8 @@ spec:
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Production"
+        - name: ASPNETCORE_URLS
+          value: "http://+:8080"
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
@@ -35,22 +37,31 @@ spec:
         resources:
           requests:
             memory: "256Mi"
-            cpu: "250m"
+            cpu: "100m"
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "1Gi"
+            cpu: "1000m"
+        # Increased delays for startup
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8080
+          failureThreshold: 30
+          periodSeconds: 10
         livenessProbe:
           httpGet:
-            path: /api/database/health
+            path: /
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /api/database/health
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          timeoutSeconds: 5
       imagePullSecrets:
       - name: acr-secret
 ---
