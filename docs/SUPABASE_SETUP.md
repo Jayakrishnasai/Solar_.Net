@@ -154,11 +154,7 @@ CREATE TABLE IF NOT EXISTS "SimulationStates" (
     "SessionId" VARCHAR(100),
     "IsPaused" BOOLEAN DEFAULT FALSE,
     "TimeMultiplier" DOUBLE PRECISION DEFAULT 1,
-    "CurrentDateTime" TIMESTAMP,
-    "CameraPositionX" DOUBLE PRECISION DEFAULT 0,
-    "CameraPositionY" DOUBLE PRECISION DEFAULT 0,
-    "CameraPositionZ" DOUBLE PRECISION DEFAULT 0,
-    "SelectedBodyId" INTEGER,
+    "SimulatedTime" TIMESTAMP,
     "LastUpdated" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
