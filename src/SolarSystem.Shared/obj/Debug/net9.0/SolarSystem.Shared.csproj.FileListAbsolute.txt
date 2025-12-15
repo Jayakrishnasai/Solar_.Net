@@ -1,0 +1,12 @@
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\bin\Debug\net9.0\SolarSystem.Shared.deps.json
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\bin\Debug\net9.0\SolarSystem.Shared.dll
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\bin\Debug\net9.0\SolarSystem.Shared.pdb
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\SolarSystem.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\SolarSystem.Shared.AssemblyInfoInputs.cache
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\SolarSystem.Shared.AssemblyInfo.cs
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\SolarSystem.Shared.csproj.CoreCompileInputs.cache
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\SolarSystem.Shared.sourcelink.json
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\SolarSystem.Shared.dll
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\refint\SolarSystem.Shared.dll
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\SolarSystem.Shared.pdb
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Shared\obj\Debug\net9.0\ref\SolarSystem.Shared.dll

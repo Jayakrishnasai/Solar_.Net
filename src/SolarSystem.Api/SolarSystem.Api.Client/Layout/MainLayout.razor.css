@@ -1,0 +1,146 @@
+/* Full-screen app layout */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #0a0a1a;
+}
+
+/* Horizontal Navigation Header */
+.nav-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: rgba(10, 10, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    z-index: 1000;
+}
+
+.nav-brand a {
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-brand a span {
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.nav-brand a:hover {
+    opacity: 0.9;
+}
+
+/* Navigation Links */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-links .nav-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.nav-links .nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-links .nav-link.active {
+    color: #ffd700;
+    background: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+/* Nav Actions */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-actions .version {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    padding: 5px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    margin-top: 60px;
+    overflow-y: auto;
+    height: calc(100vh - 60px);
+}
+
+/* Error UI */
+#blazor-error-ui {
+    background: #b32121;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    color: #fff;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .nav-header {
+        padding: 0 15px;
+    }
+
+    .nav-brand a {
+        font-size: 1.1rem;
+    }
+
+    .nav-links .nav-link {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    .nav-actions .version {
+        display: none;
+    }
+}
+
+@media (max-width: 500px) {
+    .nav-links {
+        gap: 5px;
+    }
+
+    .nav-links .nav-link {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+}

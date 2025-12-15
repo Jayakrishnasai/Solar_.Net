@@ -1,0 +1,625 @@
+@page "/db-verify"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Database Verification</PageTitle>
+
+<div class="db-verify-container">
+    <header class="page-header">
+        <h1>🔍 Database Verification</h1>
+        <p class="subtitle">System health and data integrity diagnostics</p>
+        <button class="refresh-btn" @onclick="LoadHealthReport" disabled="@isLoading">
+            @(isLoading ? "Checking..." : "🔄 Refresh")
+        </button>
+    </header>
+
+    @if (isLoading)
+    {
+        <div class="loading-section">
+            <div class="spinner"></div>
+            <p>Running diagnostics...</p>
+        </div>
+    }
+    else if (report != null)
+    {
+        <!-- Overall Status Banner -->
+        <div class="status-banner @GetStatusClass(report.IsHealthy)">
+            <span class="status-icon">@(report.IsHealthy ? "✅" : "⚠️")</span>
+            <div class="status-text">
+                <strong>@report.OverallStatus</strong>
+                <span class="check-time">Last checked: @report.CheckedAt.ToString("HH:mm:ss UTC")</span>
+            </div>
+        </div>
+
+        <div class="diagnostics-grid">
+            <!-- Connection Status -->
+            <section class="card">
+                <h2>🔌 Database Connection</h2>
+                <div class="status-row">
+                    <span class="label">Status</span>
+                    <span class="value @(report.IsConnected ? "success" : "error")">@report.ConnectionStatus</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Database</span>
+                    <span class="value">@report.DatabaseName</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Provider</span>
+                    <span class="value provider">@GetProviderName(report.Provider)</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Connection</span>
+                    <span class="value mono">@report.ConnectionString</span>
+                </div>
+            </section>
+
+            <!-- Migration Status -->
+            <section class="card">
+                <h2>📦 Migration Status</h2>
+                <div class="status-row">
+                    <span class="label">Status</span>
+                    <span class="value">@report.MigrationStatus</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Applied</span>
+                    <span class="value">@report.AppliedMigrations.Count migrations</span>
+                </div>
+                @if (report.PendingMigrations.Any())
+                {
+                    <div class="warning-box">
+                        <strong>Pending Migrations:</strong>
+                        <ul>
+                            @foreach (var m in report.PendingMigrations)
+                            {
+                                <li>@m</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </section>
+
+            <!-- Table Counts -->
+            <section class="card wide">
+                <h2>📊 Data Presence</h2>
+                <div class="status-row">
+                    <span class="label">Status</span>
+                    <span class="value">@report.DataStatus</span>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Table</th>
+                            <th>Records</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Celestial Bodies</td>
+                            <td>@report.TableCounts.CelestialBodies</td>
+                            <td>@GetCountStatus(report.TableCounts.CelestialBodies)</td>
+                        </tr>
+                        <tr>
+                            <td>  └ Planets</td>
+                            <td>@report.TableCounts.Planets</td>
+                            <td>@GetCountStatus(report.TableCounts.Planets)</td>
+                        </tr>
+                        <tr>
+                            <td>  └ Stars</td>
+                            <td>@report.TableCounts.Stars</td>
+                            <td>@GetCountStatus(report.TableCounts.Stars)</td>
+                        </tr>
+                        <tr>
+                            <td>Orbits</td>
+                            <td>@report.TableCounts.Orbits</td>
+                            <td>@GetCountStatus(report.TableCounts.Orbits)</td>
+                        </tr>
+                        <tr>
+                            <td>Planet Layers</td>
+                            <td>@report.TableCounts.PlanetLayers</td>
+                            <td>@GetCountStatus(report.TableCounts.PlanetLayers)</td>
+                        </tr>
+                        <tr>
+                            <td>Atmospheres</td>
+                            <td>@report.TableCounts.Atmospheres</td>
+                            <td>@GetCountStatus(report.TableCounts.Atmospheres)</td>
+                        </tr>
+                        <tr>
+                            <td>Moons</td>
+                            <td>@report.TableCounts.Moons</td>
+                            <td>@GetCountStatus(report.TableCounts.Moons)</td>
+                        </tr>
+                        <tr>
+                            <td>API Snapshots</td>
+                            <td>@report.TableCounts.ApiSnapshots</td>
+                            <td>@GetCountStatus(report.TableCounts.ApiSnapshots, optional: true)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Sample Data -->
+            <section class="card wide">
+                <h2>🌍 Sample Planet Data</h2>
+                @if (report.SamplePlanets.Any())
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Radius (km)</th>
+                                <th>Orbital Period</th>
+                                <th>Distance (km)</th>
+                                <th>Layers</th>
+                                <th>Moons</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var planet in report.SamplePlanets)
+                            {
+                                <tr>
+                                    <td>@planet.Id</td>
+                                    <td><strong>@planet.Name</strong></td>
+                                    <td>@planet.BodyType</td>
+                                    <td>@FormatNumber(planet.MeanRadius)</td>
+                                    <td>@(planet.HasOrbit ? $"{planet.OrbitalPeriod:N1} days" : "-")</td>
+                                    <td>@(planet.HasOrbit ? FormatNumber(planet.SemimajorAxis) : "-")</td>
+                                    <td>@planet.LayerCount</td>
+                                    <td>@planet.MoonCount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="no-data">No planet data available</p>
+                }
+            </section>
+
+            <!-- API Sync Status -->
+            <section class="card">
+                <h2>🔄 API Sync Status</h2>
+                <div class="status-row">
+                    <span class="label">Status</span>
+                    <span class="value">@report.ApiStatus</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Data Source</span>
+                    <span class="value">@report.ApiSyncInfo.DataSource</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Last Sync</span>
+                    <span class="value">@(report.ApiSyncInfo.LastSyncTime?.ToString("g") ?? "Never")</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Total Syncs</span>
+                    <span class="value">@report.ApiSyncInfo.TotalSnapshots</span>
+                </div>
+                <div class="sync-stats">
+                    <div class="stat success">
+                        <span class="num">@report.ApiSyncInfo.SuccessfulSyncs</span>
+                        <span class="lbl">Successful</span>
+                    </div>
+                    <div class="stat error">
+                        <span class="num">@report.ApiSyncInfo.FailedSyncs</span>
+                        <span class="lbl">Failed</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Integrity Check -->
+            <section class="card">
+                <h2>🔗 Data Integrity</h2>
+                <div class="status-row">
+                    <span class="label">Status</span>
+                    <span class="value">@report.IntegrityStatus</span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Orphan Orbits</span>
+                    <span class="value @(report.ForeignKeyChecks.OrphansInOrbits > 0 ? "warning" : "")">
+                        @report.ForeignKeyChecks.OrphansInOrbits
+                    </span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Orphan Layers</span>
+                    <span class="value @(report.ForeignKeyChecks.OrphansInLayers > 0 ? "warning" : "")">
+                        @report.ForeignKeyChecks.OrphansInLayers
+                    </span>
+                </div>
+                <div class="status-row">
+                    <span class="label">Orphan Moons</span>
+                    <span class="value @(report.ForeignKeyChecks.OrphansInMoons > 0 ? "warning" : "")">
+                        @report.ForeignKeyChecks.OrphansInMoons
+                    </span>
+                </div>
+            </section>
+        </div>
+
+        <!-- Back to Home -->
+        <div class="nav-footer">
+            <a href="/" class="back-btn">← Back to Solar System</a>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-section">
+            <span class="error-icon">❌</span>
+            <h3>Failed to load diagnostics</h3>
+            <p>@errorMessage</p>
+            <button class="refresh-btn" @onclick="LoadHealthReport">Try Again</button>
+        </div>
+    }
+</div>
+
+<style>
+    .db-verify-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+        padding: 30px;
+        color: #fff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin: 0;
+        color: #ffd700;
+    }
+
+    .subtitle {
+        color: rgba(255,255,255,0.6);
+        margin: 10px 0 20px;
+    }
+
+    .refresh-btn {
+        background: linear-gradient(135deg, #4da6ff, #3366cc);
+        border: none;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: transform 0.2s;
+    }
+
+    .refresh-btn:hover:not(:disabled) {
+        transform: scale(1.05);
+    }
+
+    .refresh-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .status-banner {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .status-banner.healthy {
+        background: linear-gradient(135deg, rgba(0,200,100,0.2), rgba(0,150,80,0.1));
+        border: 1px solid rgba(0,200,100,0.3);
+    }
+
+    .status-banner.unhealthy {
+        background: linear-gradient(135deg, rgba(255,150,0,0.2), rgba(200,100,0,0.1));
+        border: 1px solid rgba(255,150,0,0.3);
+    }
+
+    .status-icon {
+        font-size: 2.5rem;
+    }
+
+    .status-text strong {
+        font-size: 1.3rem;
+        display: block;
+    }
+
+    .check-time {
+        font-size: 0.85rem;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .diagnostics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 15px;
+        padding: 20px;
+    }
+
+    .card.wide {
+        grid-column: span 2;
+    }
+
+    .card h2 {
+        font-size: 1.1rem;
+        margin: 0 0 15px;
+        color: #4da6ff;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 10px;
+    }
+
+    .status-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .status-row .label {
+        color: rgba(255,255,255,0.6);
+    }
+
+    .status-row .value {
+        font-weight: 500;
+    }
+
+    .status-row .value.success { color: #00ff88; }
+    .status-row .value.error { color: #ff6666; }
+    .status-row .value.warning { color: #ffaa00; }
+    .status-row .value.mono { font-family: monospace; font-size: 0.85rem; }
+    .status-row .value.provider { color: #4da6ff; }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .data-table th, .data-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .data-table th {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    .data-table tbody tr:hover {
+        background: rgba(255,255,255,0.03);
+    }
+
+    .sync-stats {
+        display: flex;
+        gap: 20px;
+        margin-top: 15px;
+    }
+
+    .sync-stats .stat {
+        flex: 1;
+        text-align: center;
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .sync-stats .stat.success {
+        background: rgba(0,200,100,0.1);
+    }
+
+    .sync-stats .stat.error {
+        background: rgba(255,100,100,0.1);
+    }
+
+    .sync-stats .num {
+        font-size: 1.8rem;
+        font-weight: bold;
+        display: block;
+    }
+
+    .sync-stats .lbl {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .warning-box {
+        background: rgba(255,150,0,0.1);
+        border: 1px solid rgba(255,150,0,0.3);
+        border-radius: 8px;
+        padding: 10px 15px;
+        margin-top: 10px;
+    }
+
+    .warning-box ul {
+        margin: 5px 0 0 20px;
+        padding: 0;
+    }
+
+    .no-data {
+        text-align: center;
+        color: rgba(255,255,255,0.4);
+        padding: 30px;
+    }
+
+    .loading-section, .error-section {
+        text-align: center;
+        padding: 60px;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255,255,255,0.1);
+        border-top-color: #ffd700;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .error-icon {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 20px;
+    }
+
+    .nav-footer {
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .back-btn {
+        color: #4da6ff;
+        text-decoration: none;
+        font-size: 1rem;
+    }
+
+    .back-btn:hover {
+        text-decoration: underline;
+    }
+
+    @@media (max-width: 900px) {
+        .diagnostics-grid {
+            grid-template-columns: 1fr;
+        }
+        .card.wide {
+            grid-column: span 1;
+        }
+    }
+</style>
+
+@code {
+    private DatabaseHealthReport? report;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHealthReport();
+    }
+
+    private async Task LoadHealthReport()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            report = await Http.GetFromJsonAsync<DatabaseHealthReport>("/api/database/health");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetStatusClass(bool isHealthy) => isHealthy ? "healthy" : "unhealthy";
+
+    private string GetProviderName(string provider)
+    {
+        if (provider.Contains("Sqlite")) return "SQLite";
+        if (provider.Contains("SqlServer")) return "SQL Server";
+        if (provider.Contains("Npgsql")) return "PostgreSQL";
+        return provider;
+    }
+
+    private string GetCountStatus(int count, bool optional = false)
+    {
+        if (count > 0) return "✅";
+        return optional ? "➖" : "⚠️";
+    }
+
+    private string FormatNumber(double num)
+    {
+        if (num >= 1_000_000) return $"{num / 1_000_000:N1}M";
+        if (num >= 1_000) return $"{num / 1_000:N1}K";
+        return num.ToString("N0");
+    }
+
+    // DTO classes matching the API
+    public class DatabaseHealthReport
+    {
+        public bool IsHealthy { get; set; }
+        public bool IsConnected { get; set; }
+        public string ConnectionStatus { get; set; } = "";
+        public string OverallStatus { get; set; } = "";
+        public string? ErrorMessage { get; set; }
+        public DateTime CheckedAt { get; set; }
+        public string DatabaseName { get; set; } = "";
+        public string Provider { get; set; } = "";
+        public string ConnectionString { get; set; } = "";
+        public string MigrationStatus { get; set; } = "";
+        public List<string> AppliedMigrations { get; set; } = new();
+        public List<string> PendingMigrations { get; set; } = new();
+        public TableCountsDto TableCounts { get; set; } = new();
+        public string DataStatus { get; set; } = "";
+        public List<string> EmptyTables { get; set; } = new();
+        public List<PlanetSampleDto> SamplePlanets { get; set; } = new();
+        public ApiSyncInfoDto ApiSyncInfo { get; set; } = new();
+        public string ApiStatus { get; set; } = "";
+        public ForeignKeyChecksDto ForeignKeyChecks { get; set; } = new();
+        public string IntegrityStatus { get; set; } = "";
+    }
+
+    public class TableCountsDto
+    {
+        public int CelestialBodies { get; set; }
+        public int Planets { get; set; }
+        public int Stars { get; set; }
+        public int Orbits { get; set; }
+        public int PlanetLayers { get; set; }
+        public int Atmospheres { get; set; }
+        public int Moons { get; set; }
+        public int ApiSnapshots { get; set; }
+        public int SimulationStates { get; set; }
+    }
+
+    public class PlanetSampleDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string BodyType { get; set; } = "";
+        public double MeanRadius { get; set; }
+        public bool HasOrbit { get; set; }
+        public double OrbitalPeriod { get; set; }
+        public double SemimajorAxis { get; set; }
+        public int LayerCount { get; set; }
+        public int MoonCount { get; set; }
+    }
+
+    public class ApiSyncInfoDto
+    {
+        public DateTime? LastSyncTime { get; set; }
+        public string DataSource { get; set; } = "";
+        public int TotalSnapshots { get; set; }
+        public int SuccessfulSyncs { get; set; }
+        public int FailedSyncs { get; set; }
+    }
+
+    public class ForeignKeyChecksDto
+    {
+        public int OrphansInOrbits { get; set; }
+        public int OrphansInLayers { get; set; }
+        public int OrphansInMoons { get; set; }
+    }
+}
