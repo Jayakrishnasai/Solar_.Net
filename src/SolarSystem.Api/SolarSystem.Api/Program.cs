@@ -16,9 +16,21 @@ builder.Services.AddControllers();
 // Add SignalR
 builder.Services.AddSignalR();
 
-// Add SQLite Database
+// Add Database (PostgreSQL for production, SQLite for development)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<SolarSystemDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (builder.Environment.IsProduction() && connectionString?.Contains("Host=") == true)
+    {
+        // PostgreSQL (Supabase)
+        options.UseNpgsql(connectionString);
+    }
+    else
+    {
+        // SQLite for local development
+        options.UseSqlite(connectionString ?? "Data Source=solarsystem.db");
+    }
+});
 
 // Add HttpClient for external APIs
 builder.Services.AddHttpClient("SolarSystemApi", client =>

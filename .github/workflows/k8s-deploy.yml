@@ -1,0 +1,88 @@
+# GitHub Actions CI/CD for Azure Container Registry + Kubernetes
+name: Build and Deploy to Kubernetes
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  ACR_NAME: solarsyatem
+  ACR_LOGIN_SERVER: solarsyatem.azurecr.io
+  IMAGE_NAME: solarsystem
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  build-and-push:
+    name: Build & Push to ACR
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Azure Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.ACR_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+          ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy-to-kubernetes:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Configure Kubernetes credentials
+      uses: azure/k8s-set-context@v3
+      with:
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: Create/Update ACR Secret
+      run: |
+        kubectl delete secret acr-secret --ignore-not-found
+        kubectl create secret docker-registry acr-secret \
+          --docker-server=${{ env.ACR_LOGIN_SERVER }} \
+          --docker-username=${{ secrets.ACR_USERNAME }} \
+          --docker-password=${{ secrets.ACR_PASSWORD }}
+
+    - name: Create/Update App Secrets
+      run: |
+        kubectl delete secret solarsystem-secrets --ignore-not-found
+        kubectl create secret generic solarsystem-secrets \
+          --from-literal=supabase-connection-string="${{ secrets.SUPABASE_CONNECTION_STRING }}" \
+          --from-literal=nasa-api-key="${{ secrets.NASA_API_KEY }}"
+
+    - name: Update image tag in deployment
+      run: |
+        sed -i 's|solarsyatem.azurecr.io/solarsystem:latest|${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g' k8s/deployment.yaml
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/deployment.yaml
+
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment/solarsystem-app --timeout=120s
+        kubectl get pods -l app=solarsystem
+        kubectl get services
