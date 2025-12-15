@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "A9M4+cI8/Fs=",
+  "dgSpecHash": "PJV3TLswpq8=",
   "success": true,
   "projectFilePath": "C:\\Users\\Administrator\\Downloads\\Project_DotNet\\src\\SolarSystem.Api\\SolarSystem.Api\\SolarSystem.Api.csproj",
   "expectedPackageFiles": [
@@ -59,6 +59,8 @@
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.jsinterop\\9.0.11\\microsoft.jsinterop.9.0.11.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.jsinterop.webassembly\\9.0.11\\microsoft.jsinterop.webassembly.9.0.11.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\npgsql\\9.0.0\\npgsql.9.0.0.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\9.0.0\\npgsql.entityframeworkcore.postgresql.9.0.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.10\\sqlitepclraw.bundle_e_sqlite3.2.1.10.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\sqlitepclraw.core\\2.1.10\\sqlitepclraw.core.2.1.10.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.10\\sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",

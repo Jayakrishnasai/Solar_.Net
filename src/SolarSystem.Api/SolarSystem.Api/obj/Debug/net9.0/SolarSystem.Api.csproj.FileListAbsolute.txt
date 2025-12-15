@@ -247,4 +247,6 @@ C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\v5m75mcosm-{0}-lz2jk78vgu-lz2jk78vgu.gz
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\fg1p4c3aj6-{0}-yh5lwbzndx-yh5lwbzndx.gz
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\bin\Debug\net9.0\appsettings.Production.json
-C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\o6hlkf7tkd-{0}-p3jyveav5o-p3jyveav5o.gz
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\bin\Debug\net9.0\Npgsql.dll
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\o6hlkf7tkd-{0}-k5rphkrels-k5rphkrels.gz

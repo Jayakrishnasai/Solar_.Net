@@ -2,7 +2,6 @@
 .app-layout[b-l3h3cjv1c1] {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
     background: #0a0a1a;
 }
 
@@ -89,8 +88,7 @@
 .main-content[b-l3h3cjv1c1] {
     flex: 1;
     margin-top: 60px;
-    overflow-y: auto;
-    height: calc(100vh - 60px);
+    overflow: visible;
 }
 
 /* Error UI */
