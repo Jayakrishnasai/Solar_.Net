@@ -64,15 +64,28 @@ builder.Services.AddHostedService<SolarSystem.Api.Services.DataSyncBackgroundSer
 var app = builder.Build();
 
 // Initialize database and seed data
-using (var scope = app.Services.CreateScope())
+try
 {
-    var context = scope.ServiceProvider.GetRequiredService<SolarSystemDbContext>();
-    
-    // Ensure database is created
-    await context.Database.EnsureCreatedAsync();
-    
-    // Seed fallback data
-    await DataSeeder.SeedAsync(context);
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<SolarSystemDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        
+        logger.LogInformation("Attempting database connection...");
+        
+        // Ensure database is created
+        await context.Database.EnsureCreatedAsync();
+        
+        logger.LogInformation("Database connected successfully!");
+        
+        // Seed fallback data
+        await DataSeeder.SeedAsync(context);
+    }
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Database initialization failed. App will continue without database.");
 }
 
 // Configure the HTTP request pipeline
