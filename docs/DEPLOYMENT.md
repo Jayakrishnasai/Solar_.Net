@@ -145,4 +145,4 @@ kubectl create secret docker-registry acr-secret \
 
 ## Resume Description
 
-> "Built and deployed a multi-tier ASP.NET Core 9 application (Blazor WebAssembly + Web API + SignalR) using Docker, Kubernetes, and Supabase PostgreSQL. Implemented CI/CD with GitHub Actions for automated container builds and deployments to AKS."
+> "Implemented GitHub Actions CI/CD to deploy a full-stack ASP.NET Core application on Azure VM with Supabase PostgreSQL, including secure secret management and zero-downtime deployment."
