@@ -58,20 +58,9 @@ jobs:
       with:
         kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
-    - name: Create/Update ACR Secret
+    - name: Apply Secrets
       run: |
-        kubectl delete secret acr-secret --ignore-not-found
-        kubectl create secret docker-registry acr-secret \
-          --docker-server=${{ env.ACR_LOGIN_SERVER }} \
-          --docker-username=${{ secrets.ACR_USERNAME }} \
-          --docker-password="${{ secrets.ACR_PASSWORD }}"
-
-    - name: Create/Update App Secrets
-      run: |
-        kubectl delete secret solarsystem-secrets --ignore-not-found
-        kubectl create secret generic solarsystem-secrets \
-          --from-literal=supabase-connection-string="${{ secrets.SUPABASE_CONNECTION_STRING }}" \
-          --from-literal=nasa-api-key="${{ secrets.NASA_API_KEY }}"
+        kubectl apply -f k8s/secrets.yaml
 
     - name: Update image tag in deployment
       run: |
