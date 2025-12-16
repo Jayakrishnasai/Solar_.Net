@@ -38,8 +38,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGJWZXJpZnkucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Administrator/Downloads/Project_DotNet/src/SolarSystem.Api/SolarSystem.Api.Client/Pages/EarthView.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRWFydGhWaWV3LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Administrator/Downloads/Project_DotNet/src/SolarSystem.Api/SolarSystem.Api.Client/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Administrator/Downloads/Project_DotNet/src/SolarSystem.Api/SolarSystem.Api.Client/Pages/NasaData.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTmFzYURhdGEucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Administrator/Downloads/Project_DotNet/src/SolarSystem.Api/SolarSystem.Api.Client/Pages/Weather.razor]

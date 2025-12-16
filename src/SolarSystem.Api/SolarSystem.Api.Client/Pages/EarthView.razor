@@ -1,0 +1,679 @@
+@page "/earth"
+@rendermode InteractiveWebAssembly
+@inject HttpClient Http
+
+<PageTitle>Earth View - Solar System Explorer</PageTitle>
+
+<div class="earth-page">
+    <!-- Header -->
+    <div class="earth-header">
+        <h1>🌍 Advanced Earth View</h1>
+        <p>Interactive globe with GeoJSON borders, search & time controls</p>
+    </div>
+
+    <!-- Top Controls Row -->
+    <div class="controls-row">
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" 
+                       @bind="searchQuery" 
+                       @bind:event="oninput"
+                       @onkeyup="HandleSearchKeyUp"
+                       placeholder="Search cities, states, countries..." 
+                       class="search-input" />
+                @if (!string.IsNullOrEmpty(searchQuery) && searchResults.Any())
+                {
+                    <div class="search-results">
+                        @foreach (var result in searchResults.Take(5))
+                        {
+                            <div class="search-result-item" @onclick="() => FlyToLocation(result)">
+                                <span class="result-icon">📍</span>
+                                <div class="result-info">
+                                    <span class="result-name">@result.Name</span>
+                                    <span class="result-type">@result.Type</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Layer Controls -->
+        <div class="layer-panel">
+            <span class="layer-title">🗺️ Layers:</span>
+            <label class="layer-toggle">
+                <input type="checkbox" checked onchange="toggleLayer('india', this.checked)" />
+                <span>India</span>
+            </label>
+            <label class="layer-toggle">
+                <input type="checkbox" checked onchange="toggleLayer('andhra', this.checked)" />
+                <span>AP</span>
+            </label>
+            <label class="layer-toggle">
+                <input type="checkbox" checked onchange="toggleLayer('cities', this.checked)" />
+                <span>Cities</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Cesium Globe -->
+    <div class="globe-wrapper">
+        <div id="cesiumContainer" class="cesium-viewer"></div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="quick-nav">
+        <button class="nav-btn" onclick="flyToLocation(20.5937, 78.9629, 'India', 3000000)">🇮🇳 India</button>
+        <button class="nav-btn" onclick="flyToLocation(15.9129, 79.7400, 'Andhra Pradesh', 1000000)">🏛️ AP</button>
+        <button class="nav-btn" onclick="flyToLocation(17.3850, 78.4867, 'Hyderabad', 100000)">🌆 Hyderabad</button>
+        <button class="nav-btn" onclick="flyToLocation(16.5062, 80.6480, 'Vijayawada', 80000)">🏙️ Vijayawada</button>
+        <button class="nav-btn" onclick="flyToLocation(17.6868, 83.2185, 'Visakhapatnam', 80000)">🌊 Vizag</button>
+        <button class="nav-btn" onclick="resetView()">🌍 Reset</button>
+    </div>
+
+    <!-- Time Slider -->
+    <div class="time-control-panel">
+        <div class="time-controls">
+            <button class="time-btn" onclick="toggleTimeAnimation()">
+                <span id="playPauseIcon">▶️</span>
+            </button>
+            <input type="range" 
+                   id="timeSlider" 
+                   class="time-slider" 
+                   min="0" 
+                   max="365" 
+                   value="0"
+                   onchange="updateTimeFromSlider(this.value)" />
+            <span id="currentDate" class="current-date">Today</span>
+            <div class="time-speed">
+                <label>Speed:</label>
+                <select id="speedSelect" onchange="setAnimationSpeed(this.value)">
+                    <option value="1">1x</option>
+                    <option value="10">10x</option>
+                    <option value="100" selected>100x</option>
+                    <option value="1000">1000x</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cesium Scripts -->
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Cesium.js"></script>
+
+<script>
+    let viewer;
+    let indiaLayer, andhraLayer, citiesLayer;
+    let isAnimating = false;
+    let animationSpeed = 100;
+
+    window.initCesium = function() {
+        if (viewer) return;
+        
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4MGE2MjY5MS04NGE5LTQwZGMtODljOC0xNGVkNTllNGQ3YmIiLCJpZCI6MzY5ODk2LCJpYXQiOjE3NjU4MDgzNjR9.kHeAHu-H9e5LWHI47Wc9MLtt6_moQkqloneu3M9nknw';
+        
+        viewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: Cesium.createWorldTerrain(),
+            imageryProvider: Cesium.createWorldImagery({
+                style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS
+            }),
+            animation: false,
+            timeline: false,
+            baseLayerPicker: true,
+            geocoder: false,
+            homeButton: false,
+            sceneModePicker: true,
+            navigationHelpButton: false,
+            fullscreenButton: true
+        });
+        
+        // Enable lighting for day/night effect
+        viewer.scene.globe.enableLighting = true;
+        
+        // Initial view - India
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(78.9629, 20.5937, 5000000),
+            orientation: {
+                heading: Cesium.Math.toRadians(0),
+                pitch: Cesium.Math.toRadians(-60),
+                roll: 0.0
+            },
+            duration: 2.0
+        });
+        
+        // Load GeoJSON layers
+        loadGeoJsonLayers();
+        
+        // Add major cities
+        addCityMarkers();
+    };
+    
+    function loadGeoJsonLayers() {
+        // India border
+        Cesium.GeoJsonDataSource.load('/geo/india.geojson', {
+            stroke: Cesium.Color.ORANGE,
+            strokeWidth: 3,
+            fill: Cesium.Color.ORANGE.withAlpha(0.1)
+        }).then(function(dataSource) {
+            indiaLayer = dataSource;
+            viewer.dataSources.add(dataSource);
+        });
+        
+        // Andhra Pradesh
+        Cesium.GeoJsonDataSource.load('/geo/andhra-pradesh.geojson', {
+            stroke: Cesium.Color.CYAN,
+            strokeWidth: 4,
+            fill: Cesium.Color.CYAN.withAlpha(0.15)
+        }).then(function(dataSource) {
+            andhraLayer = dataSource;
+            viewer.dataSources.add(dataSource);
+        });
+    }
+    
+    function addCityMarkers() {
+        const cities = [
+            { name: 'Hyderabad', lat: 17.3850, lon: 78.4867, pop: '10M' },
+            { name: 'Visakhapatnam', lat: 17.6868, lon: 83.2185, pop: '2M' },
+            { name: 'Vijayawada', lat: 16.5062, lon: 80.6480, pop: '1.5M' },
+            { name: 'Guntur', lat: 16.3067, lon: 80.4365, pop: '750K' },
+            { name: 'Nellore', lat: 14.4426, lon: 79.9865, pop: '600K' },
+            { name: 'Tirupati', lat: 13.6288, lon: 79.4192, pop: '500K' },
+            { name: 'Rajahmundry', lat: 17.0005, lon: 81.8040, pop: '500K' },
+            { name: 'Kakinada', lat: 16.9891, lon: 82.2475, pop: '400K' },
+            { name: 'Amaravati', lat: 16.5131, lon: 80.5150, pop: 'Capital' },
+            { name: 'Mumbai', lat: 19.0760, lon: 72.8777, pop: '21M' },
+            { name: 'Delhi', lat: 28.6139, lon: 77.2090, pop: '19M' },
+            { name: 'Bangalore', lat: 12.9716, lon: 77.5946, pop: '13M' },
+            { name: 'Chennai', lat: 13.0827, lon: 80.2707, pop: '11M' },
+            { name: 'Kolkata', lat: 22.5726, lon: 88.3639, pop: '15M' }
+        ];
+        
+        citiesLayer = new Cesium.CustomDataSource('cities');
+        
+        cities.forEach(city => {
+            citiesLayer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(city.lon, city.lat),
+                point: {
+                    pixelSize: 10,
+                    color: Cesium.Color.GOLD,
+                    outlineColor: Cesium.Color.WHITE,
+                    outlineWidth: 2
+                },
+                label: {
+                    text: city.name,
+                    font: '14px sans-serif',
+                    fillColor: Cesium.Color.WHITE,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    pixelOffset: new Cesium.Cartesian2(0, -15),
+                    scaleByDistance: new Cesium.NearFarScalar(1e5, 1.0, 5e6, 0.3)
+                },
+                description: `<h3>${city.name}</h3><p>Population: ${city.pop}</p>`
+            });
+        });
+        
+        viewer.dataSources.add(citiesLayer);
+    }
+    
+    window.flyToLocation = function(lat, lon, name, altitude) {
+        if (!viewer) return;
+        
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(lon, lat, altitude || 500000),
+            duration: 2.5,
+            orientation: {
+                heading: Cesium.Math.toRadians(0),
+                pitch: Cesium.Math.toRadians(-45),
+                roll: 0.0
+            }
+        });
+    };
+    
+    window.resetView = function() {
+        if (!viewer) return;
+        
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(78.9629, 20.5937, 8000000),
+            duration: 2.0,
+            orientation: {
+                heading: Cesium.Math.toRadians(0),
+                pitch: Cesium.Math.toRadians(-90),
+                roll: 0.0
+            }
+        });
+    };
+    
+    window.toggleLayer = function(layerName, visible) {
+        if (layerName === 'india' && indiaLayer) {
+            indiaLayer.show = visible;
+        } else if (layerName === 'andhra' && andhraLayer) {
+            andhraLayer.show = visible;
+        } else if (layerName === 'cities' && citiesLayer) {
+            citiesLayer.show = visible;
+        }
+    };
+    
+    window.toggleTimeAnimation = function() {
+        if (!viewer) return;
+        
+        isAnimating = !isAnimating;
+        viewer.clock.shouldAnimate = isAnimating;
+        
+        document.getElementById('playPauseIcon').textContent = isAnimating ? '⏸️' : '▶️';
+    };
+    
+    window.setAnimationSpeed = function(speed) {
+        if (!viewer) return;
+        
+        animationSpeed = parseInt(speed);
+        viewer.clock.multiplier = animationSpeed * 3600; // hours to seconds
+    };
+    
+    window.updateTimeFromSlider = function(days) {
+        if (!viewer) return;
+        
+        const now = new Date();
+        const targetDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+        
+        viewer.clock.currentTime = Cesium.JulianDate.fromDate(targetDate);
+        
+        document.getElementById('currentDate').textContent = targetDate.toLocaleDateString();
+    };
+    
+    // Initialize on load
+    if (document.readyState === 'complete') {
+        setTimeout(initCesium, 500);
+    } else {
+        window.addEventListener('load', function() {
+            setTimeout(initCesium, 500);
+        });
+    }
+</script>
+
+<style>
+    .earth-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f1a 100%);
+        padding: 15px 20px;
+        padding-top: 75px;
+        color: #fff;
+        font-family: 'Segoe UI', -apple-system, sans-serif;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .earth-header {
+        text-align: center;
+    }
+
+    .earth-header h1 {
+        font-size: 1.6rem;
+        margin: 0 0 3px;
+        background: linear-gradient(135deg, #4da6ff, #00ff88);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .earth-header p {
+        color: rgba(255,255,255,0.6);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    /* Top Controls Row */
+    .controls-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    /* Search */
+    .search-container {
+        position: relative;
+        width: 350px;
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        background: rgba(10, 10, 30, 0.95);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 25px;
+        padding: 8px 18px;
+    }
+
+    .search-icon {
+        margin-right: 8px;
+        font-size: 1rem;
+    }
+
+    .search-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 0.9rem;
+        outline: none;
+    }
+
+    .search-input::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 30, 0.98);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 12px;
+        margin-top: 6px;
+        overflow: hidden;
+        z-index: 200;
+    }
+
+    .search-result-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .search-result-item:hover {
+        background: rgba(77, 166, 255, 0.2);
+    }
+
+    .result-icon {
+        font-size: 1.1rem;
+        margin-right: 10px;
+    }
+
+    .result-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .result-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .result-type {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.5);
+    }
+
+    /* Layer Panel - Inline */
+    .layer-panel {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(10, 10, 30, 0.95);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 25px;
+        padding: 8px 18px;
+    }
+
+    .layer-title {
+        font-size: 0.85rem;
+        color: #ffd700;
+        font-weight: 500;
+    }
+
+    .layer-toggle {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.8);
+    }
+
+    .layer-toggle input {
+        width: 14px;
+        height: 14px;
+        accent-color: #4da6ff;
+    }
+
+    /* Globe Wrapper */
+    .globe-wrapper {
+        flex: 1;
+        min-height: 55vh;
+    }
+
+    .cesium-viewer {
+        width: 100%;
+        height: 100%;
+        min-height: 55vh;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Quick Nav */
+    .quick-nav {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .nav-btn {
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 20px;
+        color: #fff;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .nav-btn:hover {
+        background: rgba(77, 166, 255, 0.25);
+        border-color: #4da6ff;
+        transform: translateY(-1px);
+    }
+
+    /* Time Controls */
+    .time-control-panel {
+        display: flex;
+        justify-content: center;
+    }
+
+    .time-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(10, 10, 30, 0.95);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 25px;
+        padding: 8px 20px;
+    }
+
+    .time-btn {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .time-btn:hover {
+        background: rgba(77, 166, 255, 0.3);
+    }
+
+    .time-slider {
+        width: 150px;
+        -webkit-appearance: none;
+        height: 5px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 3px;
+        outline: none;
+    }
+
+    .time-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: #4da6ff;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .current-date {
+        color: #4da6ff;
+        font-size: 0.8rem;
+        min-width: 70px;
+    }
+
+    .time-speed {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.8rem;
+    }
+
+    .time-speed select {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+    /* Hide Cesium branding */
+    .cesium-viewer-bottom {
+        display: none !important;
+    }
+
+    @@media (max-width: 768px) {
+        .controls-row {
+            flex-direction: column;
+        }
+
+        .search-container {
+            width: 100%;
+        }
+
+        .layer-panel {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .time-controls {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .time-slider {
+            width: 100%;
+            order: 10;
+        }
+    }
+</style>
+
+@code {
+    private string searchQuery = "";
+    private List<LocationResult> searchResults = new();
+    private List<LocationResult> allLocations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize location database
+        allLocations = new List<LocationResult>
+        {
+            // Andhra Pradesh Cities
+            new LocationResult { Name = "Hyderabad", Type = "City, Telangana", Lat = 17.3850, Lon = 78.4867, Altitude = 100000 },
+            new LocationResult { Name = "Visakhapatnam", Type = "City, Andhra Pradesh", Lat = 17.6868, Lon = 83.2185, Altitude = 80000 },
+            new LocationResult { Name = "Vijayawada", Type = "City, Andhra Pradesh", Lat = 16.5062, Lon = 80.6480, Altitude = 80000 },
+            new LocationResult { Name = "Guntur", Type = "City, Andhra Pradesh", Lat = 16.3067, Lon = 80.4365, Altitude = 60000 },
+            new LocationResult { Name = "Nellore", Type = "City, Andhra Pradesh", Lat = 14.4426, Lon = 79.9865, Altitude = 60000 },
+            new LocationResult { Name = "Tirupati", Type = "City, Andhra Pradesh", Lat = 13.6288, Lon = 79.4192, Altitude = 60000 },
+            new LocationResult { Name = "Rajahmundry", Type = "City, Andhra Pradesh", Lat = 17.0005, Lon = 81.8040, Altitude = 60000 },
+            new LocationResult { Name = "Kakinada", Type = "City, Andhra Pradesh", Lat = 16.9891, Lon = 82.2475, Altitude = 60000 },
+            new LocationResult { Name = "Amaravati", Type = "Capital, Andhra Pradesh", Lat = 16.5131, Lon = 80.5150, Altitude = 50000 },
+            new LocationResult { Name = "Kurnool", Type = "City, Andhra Pradesh", Lat = 15.8281, Lon = 78.0373, Altitude = 60000 },
+            new LocationResult { Name = "Kadapa", Type = "City, Andhra Pradesh", Lat = 14.4674, Lon = 78.8241, Altitude = 60000 },
+            new LocationResult { Name = "Anantapur", Type = "City, Andhra Pradesh", Lat = 14.6819, Lon = 77.6006, Altitude = 60000 },
+
+            // Indian States
+            new LocationResult { Name = "Andhra Pradesh", Type = "State, India", Lat = 15.9129, Lon = 79.7400, Altitude = 1000000 },
+            new LocationResult { Name = "Telangana", Type = "State, India", Lat = 17.8495, Lon = 79.1151, Altitude = 800000 },
+            new LocationResult { Name = "Karnataka", Type = "State, India", Lat = 15.3173, Lon = 75.7139, Altitude = 1000000 },
+            new LocationResult { Name = "Tamil Nadu", Type = "State, India", Lat = 11.1271, Lon = 78.6569, Altitude = 1000000 },
+            new LocationResult { Name = "Maharashtra", Type = "State, India", Lat = 19.7515, Lon = 75.7139, Altitude = 1200000 },
+            new LocationResult { Name = "Kerala", Type = "State, India", Lat = 10.8505, Lon = 76.2711, Altitude = 800000 },
+
+            // Major Indian Cities
+            new LocationResult { Name = "Mumbai", Type = "City, Maharashtra", Lat = 19.0760, Lon = 72.8777, Altitude = 150000 },
+            new LocationResult { Name = "Delhi", Type = "Capital, India", Lat = 28.6139, Lon = 77.2090, Altitude = 150000 },
+            new LocationResult { Name = "Bangalore", Type = "City, Karnataka", Lat = 12.9716, Lon = 77.5946, Altitude = 120000 },
+            new LocationResult { Name = "Chennai", Type = "City, Tamil Nadu", Lat = 13.0827, Lon = 80.2707, Altitude = 120000 },
+            new LocationResult { Name = "Kolkata", Type = "City, West Bengal", Lat = 22.5726, Lon = 88.3639, Altitude = 150000 },
+
+            // Countries
+            new LocationResult { Name = "India", Type = "Country", Lat = 20.5937, Lon = 78.9629, Altitude = 5000000 },
+            new LocationResult { Name = "United States", Type = "Country", Lat = 37.0902, Lon = -95.7129, Altitude = 8000000 },
+            new LocationResult { Name = "United Kingdom", Type = "Country", Lat = 55.3781, Lon = -3.4360, Altitude = 3000000 },
+            new LocationResult { Name = "Australia", Type = "Country", Lat = -25.2744, Lon = 133.7751, Altitude = 6000000 },
+            new LocationResult { Name = "Japan", Type = "Country", Lat = 36.2048, Lon = 138.2529, Altitude = 3000000 }
+        };
+    }
+
+    private void HandleSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            searchResults.Clear();
+            return;
+        }
+
+        searchResults = allLocations
+            .Where(l => l.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(l => l.Name.Length)
+            .Take(5)
+            .ToList();
+    }
+
+    private async Task FlyToLocation(LocationResult location)
+    {
+        searchQuery = location.Name;
+        searchResults.Clear();
+        StateHasChanged();
+
+        // Call JS to fly
+        await Task.Delay(100);
+    }
+
+    public class LocationResult
+    {
+        public string Name { get; set; } = "";
+        public string Type { get; set; } = "";
+        public double Lat { get; set; }
+        public double Lon { get; set; }
+        public double Altitude { get; set; } = 500000;
+    }
+}

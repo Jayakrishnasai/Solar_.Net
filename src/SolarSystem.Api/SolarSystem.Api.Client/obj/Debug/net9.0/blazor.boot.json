@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "SolarSystem.Api.Client",
   "resources": {
-    "hash": "sha256-iPVs5Ax6ou2gmi3NT5ul09Fi7Q1cwOr/Ua1XAxe6t7g=",
+    "hash": "sha256-f9rkF/FUugt6bvWzUaX7D9Oj/NH01y/9c74AwunENgw=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Authorization.is84zt9n9u.wasm": "Microsoft.AspNetCore.Authorization.wasm",
       "Microsoft.AspNetCore.Components.3zig3jhz80.wasm": "Microsoft.AspNetCore.Components.wasm",
@@ -212,10 +212,10 @@
       "icudt_CJK.tjcz0u77k5.dat": "icudt_CJK.dat",
       "icudt_EFIGS.tptq2av103.dat": "icudt_EFIGS.dat",
       "icudt_no_CJK.lfu7j35m59.dat": "icudt_no_CJK.dat",
-      "SolarSystem.Shared.24vkkk6ay7.wasm": "SolarSystem.Shared.wasm",
-      "SolarSystem.Shared.fweq316egg.pdb": "SolarSystem.Shared.pdb",
-      "SolarSystem.Api.Client.2i5z951312.wasm": "SolarSystem.Api.Client.wasm",
-      "SolarSystem.Api.Client.4fjj3xe5ly.pdb": "SolarSystem.Api.Client.pdb"
+      "SolarSystem.Shared.7djmmft3my.wasm": "SolarSystem.Shared.wasm",
+      "SolarSystem.Shared.v0lj6d9ddz.pdb": "SolarSystem.Shared.pdb",
+      "SolarSystem.Api.Client.hjqrve1zqn.wasm": "SolarSystem.Api.Client.wasm",
+      "SolarSystem.Api.Client.nkj3o94het.pdb": "SolarSystem.Api.Client.pdb"
     },
     "jsModuleNative": {
       "dotnet.native.noby4tlk4d.js": "sha256-p9eEzXhQIsI0a5bBJhfzW15iRafgplTxT8XrO5FiH9o="
@@ -436,12 +436,12 @@
       "WindowsBase.i7qip04bb5.wasm": "sha256-Lg5W8BM50Cpl1dgTrG9RQOrBRKOJq6H1t5sH3yf4KDU=",
       "mscorlib.ijjuvl21w4.wasm": "sha256-ku4DyQX7IfTdwPwDlrz9odvCs4mrgsJl0fNaqY56KOI=",
       "netstandard.jgp13znru0.wasm": "sha256-I7arRnyxWh5PItslQKjzLIG7EpohJACm7p/7K8eD0YA=",
-      "SolarSystem.Shared.24vkkk6ay7.wasm": "sha256-fuFUW3XbjVmMD0IKClKrvGRPNLM5p/RFf7yVJ7yLKbs=",
-      "SolarSystem.Api.Client.2i5z951312.wasm": "sha256-mrN3oK53SoVsRN/9oLW4gl+Z7PG/C5vq2GB4tyGwmRo="
+      "SolarSystem.Shared.7djmmft3my.wasm": "sha256-dfIOmybtlfbadkSni7IUwlYpA88hCmeYsrTIw/+A5hY=",
+      "SolarSystem.Api.Client.hjqrve1zqn.wasm": "sha256-4/lU5Zo8kY7ytPc6zGEddwgckMiRnYnER3xov71B1is="
     },
     "pdb": {
-      "SolarSystem.Shared.fweq316egg.pdb": "sha256-EctDzOGnJN/1/0LozYv1sysqUlWRs0gtngkwaaUvJhk=",
-      "SolarSystem.Api.Client.4fjj3xe5ly.pdb": "sha256-EBDBe7DV7xNx+tqMTy5rPSfgsITnAG1owiwJr8ztjII="
+      "SolarSystem.Shared.v0lj6d9ddz.pdb": "sha256-L9tr08dKq4tq6ef7TPqpFvsXgpNo5OdbAagLrCJ+Xxw=",
+      "SolarSystem.Api.Client.nkj3o94het.pdb": "sha256-1+FJW/gHOblTCzU4nTTVvQxNaf27Q5CwMpksfoUViO4="
     }
   },
   "cacheBootResources": true,

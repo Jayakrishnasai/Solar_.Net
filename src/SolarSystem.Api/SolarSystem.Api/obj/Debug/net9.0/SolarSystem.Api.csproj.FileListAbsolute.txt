@@ -244,9 +244,9 @@ C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\SolarSystem.Api.genruntimeconfig.cache
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\ref\SolarSystem.Api.dll
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\14lwaukogz-{0}-f17y8d0rhm-f17y8d0rhm.gz
-C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\v5m75mcosm-{0}-lz2jk78vgu-lz2jk78vgu.gz
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\fg1p4c3aj6-{0}-yh5lwbzndx-yh5lwbzndx.gz
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\bin\Debug\net9.0\appsettings.Production.json
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\bin\Debug\net9.0\Npgsql.dll
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
 C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\o6hlkf7tkd-{0}-k5rphkrels-k5rphkrels.gz
+C:\Users\Administrator\Downloads\Project_DotNet\src\SolarSystem.Api\SolarSystem.Api\obj\Debug\net9.0\compressed\v5m75mcosm-{0}-qxy3ubxul0-qxy3ubxul0.gz

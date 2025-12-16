@@ -1,0 +1,438 @@
+@page "/nasa"
+@rendermode InteractiveWebAssembly
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<PageTitle>NASA Data - Solar System Explorer</PageTitle>
+
+<div class="nasa-container">
+    <div class="nasa-header">
+        <h1>🚀 NASA Space Data</h1>
+        <p>Live data from NASA Open APIs</p>
+        <button class="refresh-btn" @onclick="RefreshData" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span>Loading...</span>
+            }
+            else
+            {
+                <span>🔄 Refresh Data</span>
+            }
+        </button>
+    </div>
+
+    @if (errorMessage != null)
+    {
+        <div class="error-box">⚠️ @errorMessage</div>
+    }
+
+    <!-- APOD Section -->
+    <div class="data-section">
+        <h2>📷 Astronomy Picture of the Day</h2>
+        @if (apod != null)
+        {
+            <div class="apod-card">
+                <img src="@apod.Url" alt="@apod.Title" class="apod-image" />
+                <div class="apod-info">
+                    <h3>@apod.Title</h3>
+                    <p class="apod-date">@apod.Date</p>
+                    <p class="apod-desc">@apod.Explanation</p>
+                    @if (!string.IsNullOrEmpty(apod.Copyright))
+                    {
+                        <p class="apod-copyright">© @apod.Copyright</p>
+                    }
+                </div>
+            </div>
+        }
+        else if (!isLoading)
+        {
+            <p class="no-data">No APOD data available. Click Refresh to fetch.</p>
+        }
+    </div>
+
+    <!-- NEO Section -->
+    <div class="data-section">
+        <h2>☄️ Near Earth Objects (Last 7 Days)</h2>
+        @if (neoData != null && neoData.NearEarthObjects != null)
+        {
+            <div class="neo-stats">
+                <div class="stat-card">
+                    <span class="stat-number">@neoData.ElementCount</span>
+                    <span class="stat-label">Total Objects</span>
+                </div>
+            </div>
+            <div class="neo-grid">
+                @foreach (var day in neoData.NearEarthObjects.Take(3))
+                {
+                    <div class="neo-day">
+                        <h4>@day.Key</h4>
+                        @foreach (var neo in day.Value.Take(5))
+                        {
+                            <div class="neo-item @(neo.IsPotentiallyHazardous ? "hazardous" : "")">
+                                <span class="neo-name">@neo.Name</span>
+                                @if (neo.IsPotentiallyHazardous)
+                                {
+                                    <span class="hazard-badge">⚠️ Hazardous</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else if (!isLoading)
+        {
+            <p class="no-data">No NEO data available. Click Refresh to fetch.</p>
+        }
+    </div>
+
+    <!-- Mars Photos Section -->
+    <div class="data-section">
+        <h2>🔴 Mars Rover Photos</h2>
+        @if (marsPhotos != null && marsPhotos.Photos != null)
+        {
+            <div class="mars-grid">
+                @foreach (var photo in marsPhotos.Photos.Take(8))
+                {
+                    <div class="mars-photo">
+                        <img src="@photo.ImgSrc" alt="Mars" loading="lazy" />
+                        <div class="photo-info">
+                            <span>@photo.Camera?.FullName</span>
+                            <span>@photo.EarthDate</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else if (!isLoading)
+        {
+            <p class="no-data">No Mars photos available. Click Refresh to fetch.</p>
+        }
+    </div>
+</div>
+
+<style>
+    .nasa-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f0f1a 100%);
+        padding: 40px;
+        padding-top: 80px;
+        color: #fff;
+        font-family: 'Segoe UI', -apple-system, sans-serif;
+    }
+
+    .nasa-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .nasa-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #ff6b6b, #ffd700);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .nasa-header p {
+        color: rgba(255,255,255,0.7);
+        font-size: 1.1rem;
+    }
+
+    .refresh-btn {
+        margin-top: 20px;
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #4da6ff, #3366cc);
+        border: none;
+        border-radius: 25px;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .refresh-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(77, 166, 255, 0.3);
+    }
+
+    .refresh-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
+    }
+
+    .error-box {
+        background: rgba(255, 100, 100, 0.2);
+        border: 1px solid rgba(255, 100, 100, 0.5);
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        color: #ff6b6b;
+    }
+
+    .data-section {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .data-section h2 {
+        margin: 0 0 20px;
+        font-size: 1.5rem;
+        color: #ffd700;
+    }
+
+    .no-data {
+        color: rgba(255,255,255,0.5);
+        text-align: center;
+        padding: 40px;
+    }
+
+    /* APOD Styles */
+    .apod-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+
+    .apod-image {
+        width: 100%;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .apod-info h3 {
+        margin: 0 0 10px;
+        font-size: 1.5rem;
+    }
+
+    .apod-date {
+        color: #4da6ff;
+        margin-bottom: 15px;
+    }
+
+    .apod-desc {
+        color: rgba(255,255,255,0.8);
+        line-height: 1.6;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .apod-copyright {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+
+    /* NEO Styles */
+    .neo-stats {
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        display: inline-flex;
+        flex-direction: column;
+        background: rgba(77, 166, 255, 0.2);
+        padding: 20px 40px;
+        border-radius: 15px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #4da6ff;
+    }
+
+    .stat-label {
+        color: rgba(255,255,255,0.7);
+    }
+
+    .neo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .neo-day {
+        background: rgba(255,255,255,0.05);
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .neo-day h4 {
+        margin: 0 0 15px;
+        color: #ffd700;
+    }
+
+    .neo-item {
+        padding: 10px;
+        margin-bottom: 10px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .neo-item.hazardous {
+        background: rgba(255, 100, 100, 0.2);
+        border: 1px solid rgba(255, 100, 100, 0.3);
+    }
+
+    .neo-name {
+        font-size: 0.85rem;
+    }
+
+    .hazard-badge {
+        font-size: 0.75rem;
+        color: #ff6b6b;
+    }
+
+    /* Mars Styles */
+    .mars-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+
+    .mars-photo {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .mars-photo img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .mars-photo:hover img {
+        transform: scale(1.1);
+    }
+
+    .photo-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.9));
+        padding: 20px 10px 10px;
+        font-size: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    @@media (max-width: 900px) {
+        .apod-card {
+            grid-template-columns: 1fr;
+        }
+
+        .neo-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .mars-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+@code {
+    private ApodResponse? apod;
+    private NeoResponse? neoData;
+    private MarsPhotosResponse? marsPhotos;
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            // Fetch APOD
+            try
+            {
+                apod = await Http.GetFromJsonAsync<ApodResponse>("/api/nasa/apod");
+            }
+            catch { }
+
+            // Fetch NEO
+            try
+            {
+                neoData = await Http.GetFromJsonAsync<NeoResponse>("/api/nasa/neo");
+            }
+            catch { }
+
+            // Fetch Mars Photos
+            try
+            {
+                marsPhotos = await Http.GetFromJsonAsync<MarsPhotosResponse>("/api/nasa/mars");
+            }
+            catch { }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error fetching data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // Response Models
+    public class ApodResponse
+    {
+        public string? Title { get; set; }
+        public string? Explanation { get; set; }
+        public string? Url { get; set; }
+        public string? Date { get; set; }
+        public string? Copyright { get; set; }
+    }
+
+    public class NeoResponse
+    {
+        public int ElementCount { get; set; }
+        public Dictionary<string, List<NeoObject>>? NearEarthObjects { get; set; }
+    }
+
+    public class NeoObject
+    {
+        public string? Name { get; set; }
+        public bool IsPotentiallyHazardous { get; set; }
+    }
+
+    public class MarsPhotosResponse
+    {
+        public List<MarsPhoto>? Photos { get; set; }
+    }
+
+    public class MarsPhoto
+    {
+        public string? ImgSrc { get; set; }
+        public string? EarthDate { get; set; }
+        public MarsCamera? Camera { get; set; }
+    }
+
+    public class MarsCamera
+    {
+        public string? FullName { get; set; }
+    }
+}
