@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
 
 env:
-  ACR_NAME: solarsyatem
-  ACR_LOGIN_SERVER: solarsyatem.azurecr.io
+  ACR_NAME: solarsyatem1
+  ACR_LOGIN_SERVER: solarsyatem1.azurecr.io
   IMAGE_NAME: solarsystem
   DOTNET_VERSION: '9.0.x'
 
@@ -64,7 +64,7 @@ jobs:
 
     - name: Update image tag in deployment
       run: |
-        sed -i 's|solarsyatem.azurecr.io/solarsystem:latest|${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g' k8s/deployment.yaml
+        sed -i 's|solarsyatem1.azurecr.io/solarsystem:latest|${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|g' k8s/deployment.yaml
 
     - name: Deploy to Kubernetes
       run: |

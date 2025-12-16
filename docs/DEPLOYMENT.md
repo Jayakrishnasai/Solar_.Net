@@ -71,14 +71,14 @@ git push origin main
 ### Build Docker Image
 
 ```bash
-docker build -t solarsyatem.azurecr.io/solarsystem:latest .
+docker build -t solarsyatem1.azurecr.io/solarsystem:latest .
 ```
 
 ### Push to ACR
 
 ```bash
-az acr login --name solarsyatem
-docker push solarsyatem.azurecr.io/solarsystem:latest
+az acr login --name solarsyatem1
+docker push solarsyatem1.azurecr.io/solarsystem:latest
 ```
 
 ### Deploy to Kubernetes
@@ -120,8 +120,8 @@ kubectl describe pod <pod-name>
 ```bash
 kubectl delete secret acr-secret
 kubectl create secret docker-registry acr-secret \
-  --docker-server=solarsyatem.azurecr.io \
-  --docker-username=solarsyatem \
+  --docker-server=solarsyatem1.azurecr.io \
+  --docker-username=solarsyatem1 \
   --docker-password=YOUR_PASSWORD
 ```
 

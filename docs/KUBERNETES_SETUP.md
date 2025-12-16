@@ -23,7 +23,7 @@ az aks create \
   --node-count 2 \
   --node-vm-size Standard_B2s \
   --enable-managed-identity \
-  --attach-acr solarsyatem \
+  --attach-acr solarsyatem1 \
   --generate-ssh-keys
 
 # Get credentials
@@ -40,7 +40,7 @@ kubectl get nodes
 az aks update \
   --resource-group $RESOURCE_GROUP \
   --name $CLUSTER_NAME \
-  --attach-acr solarsyatem
+  --attach-acr solarsyatem1
 ```
 
 ### 3. Install NGINX Ingress Controller
@@ -106,8 +106,8 @@ docker build -t solarsystem:latest .
 ```bash
 # ACR Secret
 kubectl create secret docker-registry acr-secret \
-  --docker-server=solarsyatem.azurecr.io \
-  --docker-username=solarsyatem \
+  --docker-server=solarsyatem1.azurecr.io \
+  --docker-username=solarsyatem1 \
   --docker-password="YOUR_ACR_PASSWORD"
 
 # App Secrets
@@ -151,7 +151,7 @@ Go to GitHub → Repository → Settings → Secrets → Actions
 
 | Secret | How to Get |
 |--------|------------|
-| `ACR_USERNAME` | `solarsyatem` |
+| `ACR_USERNAME` | `solarsyatem1` |
 | `ACR_PASSWORD` | From Azure ACR access keys |
 | `KUBE_CONFIG` | See below |
 | `SUPABASE_CONNECTION_STRING` | From Supabase dashboard |
@@ -221,7 +221,7 @@ kubectl describe pod <pod-name>
 kubectl get secret acr-secret -o yaml
 
 # Verify ACR login
-docker login solarsyatem.azurecr.io
+docker login solarsyatem1.azurecr.io
 ```
 
 ### Service not accessible

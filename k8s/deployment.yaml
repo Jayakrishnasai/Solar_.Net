@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: solarsystem
-        image: solarsyatem.azurecr.io/solarsystem:latest
+        image: solarsyatem1.azurecr.io/solarsystem:latest
         ports:
         - containerPort: 8080
         env:
