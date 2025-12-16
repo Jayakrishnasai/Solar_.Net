@@ -20,44 +20,21 @@ public class CelestialBodiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get all celestial bodies with basic orbit data
+    /// Get all celestial bodies with basic data
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CelestialBodyDto>>> GetAll()
     {
         var bodies = await _context.CelestialBodies
-            .Include(b => b.Orbit)
-            .Include(b => b.Moons)
             .OrderBy(b => b.BodyType == "Star" ? 0 : 1)
-            .ThenBy(b => b.Orbit != null ? b.Orbit.SemimajorAxis : 0)
+            .ThenBy(b => b.Id)
             .Select(b => new CelestialBodyDto
             {
                 Id = b.Id,
                 Name = b.Name,
                 EnglishName = b.EnglishName,
                 BodyType = b.BodyType,
-                MeanRadius = b.MeanRadius,
-                Mass = b.Mass,
-                MassExponent = b.MassExponent,
-                Gravity = b.Gravity,
-                MeanTemperature = b.MeanTemperature,
-                IsPlanet = b.IsPlanet,
-                ImageUrl = b.ImageUrl,
-                TextureUrl = b.TextureUrl,
-                MoonCount = b.Moons.Count,
-                Orbit = b.Orbit != null ? new OrbitDto
-                {
-                    SemimajorAxis = b.Orbit.SemimajorAxis,
-                    Perihelion = b.Orbit.Perihelion,
-                    Aphelion = b.Orbit.Aphelion,
-                    Eccentricity = b.Orbit.Eccentricity,
-                    Inclination = b.Orbit.Inclination,
-                    OrbitalPeriod = b.Orbit.OrbitalPeriod,
-                    SiderealOrbit = b.Orbit.SiderealOrbit,
-                    ArgumentOfPerihelion = b.Orbit.ArgumentOfPerihelion,
-                    LongitudeOfAscendingNode = b.Orbit.LongitudeOfAscendingNode,
-                    MeanAnomaly = b.Orbit.MeanAnomaly
-                } : null
+                IsPlanet = b.IsPlanet
             })
             .ToListAsync();
 
@@ -65,16 +42,12 @@ public class CelestialBodiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get detailed info for a single celestial body including layers and moons
+    /// Get detailed info for a single celestial body
     /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<CelestialBodyDetailDto>> GetById(int id)
     {
         var body = await _context.CelestialBodies
-            .Include(b => b.Orbit)
-            .Include(b => b.Atmosphere)
-            .Include(b => b.Layers.OrderBy(l => l.LayerOrder))
-            .Include(b => b.Moons)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (body == null)
@@ -88,62 +61,7 @@ public class CelestialBodiesController : ControllerBase
             Name = body.Name,
             EnglishName = body.EnglishName,
             BodyType = body.BodyType,
-            Mass = body.Mass,
-            MassExponent = body.MassExponent,
-            MeanRadius = body.MeanRadius,
-            EquatorialRadius = body.EquatorialRadius,
-            PolarRadius = body.PolarRadius,
-            Density = body.Density,
-            Gravity = body.Gravity,
-            EscapeSpeed = body.EscapeSpeed,
-            MeanTemperature = body.MeanTemperature,
-            SiderealRotation = body.SiderealRotation,
-            AxialTilt = body.AxialTilt,
-            ImageUrl = body.ImageUrl,
-            TextureUrl = body.TextureUrl,
-            Description = body.Description,
-            Orbit = body.Orbit != null ? new OrbitDto
-            {
-                SemimajorAxis = body.Orbit.SemimajorAxis,
-                Perihelion = body.Orbit.Perihelion,
-                Aphelion = body.Orbit.Aphelion,
-                Eccentricity = body.Orbit.Eccentricity,
-                Inclination = body.Orbit.Inclination,
-                OrbitalPeriod = body.Orbit.OrbitalPeriod,
-                SiderealOrbit = body.Orbit.SiderealOrbit,
-                ArgumentOfPerihelion = body.Orbit.ArgumentOfPerihelion,
-                LongitudeOfAscendingNode = body.Orbit.LongitudeOfAscendingNode,
-                MeanAnomaly = body.Orbit.MeanAnomaly
-            } : null,
-            Atmosphere = body.Atmosphere != null ? new AtmosphereDto
-            {
-                HasAtmosphere = body.Atmosphere.HasAtmosphere,
-                Composition = body.Atmosphere.Composition,
-                SurfacePressure = body.Atmosphere.SurfacePressure,
-                Color = body.Atmosphere.Color,
-                Description = body.Atmosphere.Description
-            } : null,
-            Layers = body.Layers.Select(l => new PlanetLayerDto
-            {
-                LayerName = l.LayerName,
-                LayerOrder = l.LayerOrder,
-                InnerRadius = l.InnerRadius,
-                OuterRadius = l.OuterRadius,
-                Composition = l.Composition,
-                Temperature = l.Temperature,
-                State = l.State,
-                Color = l.Color,
-                Description = l.Description
-            }).ToList(),
-            Moons = body.Moons.Select(m => new MoonDto
-            {
-                Id = m.Id,
-                Name = m.Name,
-                Radius = m.Radius,
-                OrbitalRadius = m.OrbitalRadius,
-                OrbitalPeriod = m.OrbitalPeriod,
-                ImageUrl = m.ImageUrl
-            }).ToList()
+            Description = body.Description
         };
 
         return Ok(dto);
@@ -156,10 +74,6 @@ public class CelestialBodiesController : ControllerBase
     public async Task<ActionResult<CelestialBodyDetailDto>> GetByName(string name)
     {
         var body = await _context.CelestialBodies
-            .Include(b => b.Orbit)
-            .Include(b => b.Atmosphere)
-            .Include(b => b.Layers.OrderBy(l => l.LayerOrder))
-            .Include(b => b.Moons)
             .FirstOrDefaultAsync(b => b.EnglishName.ToLower() == name.ToLower());
 
         if (body == null)
@@ -167,7 +81,6 @@ public class CelestialBodiesController : ControllerBase
             return NotFound();
         }
 
-        // Reuse the same mapping logic
         return await GetById(body.Id);
     }
 
@@ -179,36 +92,15 @@ public class CelestialBodiesController : ControllerBase
     {
         var planets = await _context.CelestialBodies
             .Where(b => b.IsPlanet || b.BodyType == "Star")
-            .Include(b => b.Orbit)
-            .Include(b => b.Moons)
             .OrderBy(b => b.BodyType == "Star" ? 0 : 1)
-            .ThenBy(b => b.Orbit != null ? b.Orbit.SemimajorAxis : 0)
+            .ThenBy(b => b.Id)
             .Select(b => new CelestialBodyDto
             {
                 Id = b.Id,
                 Name = b.Name,
                 EnglishName = b.EnglishName,
                 BodyType = b.BodyType,
-                MeanRadius = b.MeanRadius,
-                Mass = b.Mass,
-                MassExponent = b.MassExponent,
-                Gravity = b.Gravity,
-                MeanTemperature = b.MeanTemperature,
-                IsPlanet = b.IsPlanet,
-                ImageUrl = b.ImageUrl,
-                TextureUrl = b.TextureUrl,
-                MoonCount = b.Moons.Count,
-                Orbit = b.Orbit != null ? new OrbitDto
-                {
-                    SemimajorAxis = b.Orbit.SemimajorAxis,
-                    Perihelion = b.Orbit.Perihelion,
-                    Aphelion = b.Orbit.Aphelion,
-                    Eccentricity = b.Orbit.Eccentricity,
-                    Inclination = b.Orbit.Inclination,
-                    OrbitalPeriod = b.Orbit.OrbitalPeriod,
-                    SiderealOrbit = b.Orbit.SiderealOrbit,
-                    MeanAnomaly = b.Orbit.MeanAnomaly
-                } : null
+                IsPlanet = b.IsPlanet
             })
             .ToListAsync();
 

@@ -82,19 +82,13 @@ public class DatabaseController : ControllerBase
             // 5. Sample Planets
             report.SamplePlanets = await _context.CelestialBodies
                 .Where(c => c.IsPlanet || c.BodyType == "Star")
-                .OrderBy(c => c.Orbit != null ? c.Orbit.SemimajorAxis : 0)
+                .OrderBy(c => c.Id)
                 .Take(5)
                 .Select(c => new PlanetSampleDto
                 {
                     Id = c.Id,
                     Name = c.EnglishName,
-                    BodyType = c.BodyType,
-                    MeanRadius = c.MeanRadius,
-                    HasOrbit = c.Orbit != null,
-                    OrbitalPeriod = c.Orbit != null ? c.Orbit.OrbitalPeriod : 0,
-                    SemimajorAxis = c.Orbit != null ? c.Orbit.SemimajorAxis : 0,
-                    LayerCount = c.Layers.Count,
-                    MoonCount = c.Moons.Count
+                    BodyType = c.BodyType
                 })
                 .ToListAsync();
 
