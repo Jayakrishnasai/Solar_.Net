@@ -11,6 +11,7 @@
 - [Architectural Overview](#-architectural-overview)
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
+- [File Structure](#-file-structure)
 - [Documentation](#-documentation)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -111,6 +112,40 @@ You can obtain a NASA API key from [api.nasa.gov](https://api.nasa.gov/). For Su
 - `src/SolarSystem.Shared` - Shared models & DTOs
 - `k8s/` - Kubernetes manifests
 - `docs/` - Technical documentation
+
+## 📂 File Structure
+
+```
+.
+├── docs
+├── k8s
+└── src
+    ├── SolarSystem.Api
+    │   ├── SolarSystem.Api
+    │   │   ├── Components
+    │   │   │   └── Pages
+    │   │   ├── Controllers
+    │   │   ├── Data
+    │   │   ├── Hubs
+    │   │   ├── Properties
+    │   │   ├── Services
+    │   │   └── wwwroot
+    │   │       ├── css
+    │   │       ├── geo
+    │   │       ├── js
+    │   │       └── lib
+    │   │           └── bootstrap
+    │   │               └── dist
+    │   │                   ├── css
+    │   │                   └── js
+    │   └── SolarSystem.Api.Client
+    │       ├── Layout
+    │       ├── Pages
+    │       └── wwwroot
+    └── SolarSystem.Shared
+        ├── DTOs
+        └── Models
+```
 
 ## 📚 Documentation
 
