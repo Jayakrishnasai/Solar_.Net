@@ -23,6 +23,16 @@ public class SolarSystemDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Map to PostgreSQL snake_case table names
+        modelBuilder.Entity<CelestialBody>().ToTable("celestial_bodies");
+        modelBuilder.Entity<Orbit>().ToTable("orbits");
+        modelBuilder.Entity<PlanetLayer>().ToTable("planet_layers");
+        modelBuilder.Entity<Atmosphere>().ToTable("atmospheres");
+        modelBuilder.Entity<Moon>().ToTable("moons");
+        modelBuilder.Entity<ApiSnapshot>().ToTable("api_snapshots");
+        modelBuilder.Entity<SimulationState>().ToTable("SimulationStates");
+        modelBuilder.Entity<ContactSubmission>().ToTable("ContactSubmissions");
+
         // CelestialBody configuration
         modelBuilder.Entity<CelestialBody>(entity =>
         {

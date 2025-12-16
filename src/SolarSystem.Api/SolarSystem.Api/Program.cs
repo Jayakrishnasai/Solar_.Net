@@ -20,7 +20,7 @@ builder.Services.AddSignalR();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<SolarSystemDbContext>(options =>
 {
-    if (builder.Environment.IsProduction() && connectionString?.Contains("Host=") == true)
+    if (connectionString?.Contains("Host=") == true)
     {
         // PostgreSQL (Supabase)
         options.UseNpgsql(connectionString);
