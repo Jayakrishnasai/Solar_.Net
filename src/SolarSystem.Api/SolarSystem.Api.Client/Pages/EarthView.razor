@@ -1,6 +1,7 @@
 @page "/earth"
 @rendermode InteractiveWebAssembly
 @inject HttpClient Http
+@inject IJSRuntime JS
 
 <PageTitle>Earth View - Solar System Explorer</PageTitle>
 
@@ -114,20 +115,35 @@
     window.initCesium = function() {
         if (viewer) return;
         
-        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4MGE2MjY5MS04NGE5LTQwZGMtODljOC0xNGVkNTllNGQ3YmIiLCJpZCI6MzY5ODk2LCJpYXQiOjE3NjU4MDgzNjR9.kHeAHu-H9e5LWHI47Wc9MLtt6_moQkqloneu3M9nknw';
+        // Check if Cesium is loaded
+        if (typeof Cesium === 'undefined') {
+            console.log('Cesium not loaded yet, retrying...');
+            setTimeout(initCesium, 500);
+            return;
+        }
+        
+        var container = document.getElementById('cesiumContainer');
+        if (!container) {
+            console.log('Container not found, retrying...');
+            setTimeout(initCesium, 500);
+            return;
+        }
+        
+        try {
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhZWE1NDk3OC0zNWY3LTRhMzYtOGM1YS0yNWY2MTM3MDBlZTYiLCJpZCI6MzY5ODk2LCJpYXQiOjE3NjU4NzY5Nzh9.2PnlpXHDSL2G6zFzlvhCrAvL5-Q3ee9i1zQo7589zhk';
         
         viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain(),
             imageryProvider: Cesium.createWorldImagery({
                 style: Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS
             }),
-            animation: false,
-            timeline: false,
+            animation: true,
+            timeline: true,
             baseLayerPicker: true,
-            geocoder: false,
-            homeButton: false,
+            geocoder: true,
+            homeButton: true,
             sceneModePicker: true,
-            navigationHelpButton: false,
+            navigationHelpButton: true,
             fullscreenButton: true
         });
         
@@ -150,6 +166,11 @@
         
         // Add major cities
         addCityMarkers();
+        
+        console.log('Cesium initialized successfully!');
+        } catch (e) {
+            console.error('Cesium initialization error:', e);
+        }
     };
     
     function loadGeoJsonLayers() {
@@ -286,14 +307,7 @@
         document.getElementById('currentDate').textContent = targetDate.toLocaleDateString();
     };
     
-    // Initialize on load
-    if (document.readyState === 'complete') {
-        setTimeout(initCesium, 500);
-    } else {
-        window.addEventListener('load', function() {
-            setTimeout(initCesium, 500);
-        });
-    }
+    // Called from Blazor OnAfterRenderAsync
 </script>
 
 <style>
@@ -316,10 +330,7 @@
     .earth-header h1 {
         font-size: 1.6rem;
         margin: 0 0 3px;
-        background: linear-gradient(135deg, #4da6ff, #00ff88);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #4da6ff;
     }
 
     .earth-header p {
@@ -450,13 +461,19 @@
     /* Globe Wrapper */
     .globe-wrapper {
         flex: 1;
-        min-height: 55vh;
+        min-height: 500px;
+    }
+
+    #cesiumContainer {
+        width: 100%;
+        height: 100%;
+        min-height: 500px;
     }
 
     .cesium-viewer {
         width: 100%;
         height: 100%;
-        min-height: 55vh;
+        min-height: 500px;
         border-radius: 15px;
         overflow: hidden;
         box-shadow: 0 10px 40px rgba(0,0,0,0.5);
@@ -658,14 +675,24 @@
             .ToList();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Wait a bit for Cesium script to load
+            await Task.Delay(500);
+            await JS.InvokeVoidAsync("initCesium");
+        }
+    }
+
     private async Task FlyToLocation(LocationResult location)
     {
         searchQuery = location.Name;
         searchResults.Clear();
         StateHasChanged();
 
-        // Call JS to fly
-        await Task.Delay(100);
+        // Call JS to fly to location
+        await JS.InvokeVoidAsync("flyToLocation", location.Lat, location.Lon, location.Name, location.Altitude);
     }
 
     public class LocationResult

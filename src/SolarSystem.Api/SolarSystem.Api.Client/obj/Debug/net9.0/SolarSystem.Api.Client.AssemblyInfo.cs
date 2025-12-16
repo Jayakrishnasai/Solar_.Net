@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SolarSystem.Api.Client")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a8f01ff29ae6002fd38b13bbeaa1f141a935cc94")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d6fcc109df13dadac7626ea76c4d560129457969")]
 [assembly: System.Reflection.AssemblyProductAttribute("SolarSystem.Api.Client")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SolarSystem.Api.Client")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

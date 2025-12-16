@@ -59,7 +59,8 @@ builder.Services.AddCors(options =>
 // Add API sync services
 builder.Services.AddScoped<SolarSystem.Api.Services.SolarSystemApiService>();
 builder.Services.AddScoped<SolarSystem.Api.Services.NasaApiService>();
-builder.Services.AddHostedService<SolarSystem.Api.Services.DataSyncBackgroundService>();
+// Temporarily disabled - causing startup issues
+// builder.Services.AddHostedService<SolarSystem.Api.Services.DataSyncBackgroundService>();
 
 var app = builder.Build();
 
