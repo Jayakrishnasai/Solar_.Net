@@ -1,8 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# copy csproj and restore as distinct layers
+# copy csproj files and restore
 COPY SolarSystem.Api.Client.csproj ./
+COPY ../../SolarSystem.Shared/SolarSystem.Shared.csproj ../../SolarSystem.Shared/
 RUN dotnet restore
 
 # copy everything else and build

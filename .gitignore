@@ -44,3 +44,13 @@ Thumbs.db
 # Other
 *.log
 *.lock
+
+# Docker
+.env
+.env.*
+
+# Node (if frontend tooling exists now or later)
+node_modules/
+
+# Nginx / runtime temp
+nginx.conf
