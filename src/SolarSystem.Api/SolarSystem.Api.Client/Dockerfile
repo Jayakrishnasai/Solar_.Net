@@ -7,7 +7,7 @@ COPY ../../SolarSystem.Shared/SolarSystem.Shared.csproj ../../SolarSystem.Shared
 RUN dotnet restore
 
 # copy everything else and build
-COPY . ./
+COPY ../../SolarSystem.Shared/ ./SolarSystem.Shared/
 RUN dotnet publish -c Release -o /app/publish
 
 # runtime stage using nginx to serve static files
