@@ -2,7 +2,7 @@
 
 **Solar System Explorer** is a full-stack, 3D interactive Solar System visualization built with .NET 8, Blazor WebAssembly, Three.js, and Supabase. This project provides a real-time, educational experience, allowing users to explore planets, moons, and celestial bodies in our solar system.
 
-![Solar System Demo]()
+
 
 ## 📚 Table of Contents
 
